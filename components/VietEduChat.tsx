@@ -1,96 +1,147 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { chatWithAI } from '../services/geminiService';
+
+interface Message {
+  id: string;
+  text: string;
+  sender: 'user' | 'ai';
+  timestamp: Date;
+}
 
 const VietEduChat: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<{role: 'user' | 'ai', text: string}[]>([
-    { role: 'ai', text: 'Chào Thầy Tùng! Tôi là Trợ lý AI VietEdu. Hôm nay Thầy cần tôi hỗ trợ soạn bài hay phân tích dữ liệu lớp học nào ạ?' }
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: 'Chào thầy/cô! Tôi là trợ lý AI của VietEdu Smart Pro. Tôi có thể giúp thầy/cô soạn giáo án, tạo câu hỏi trắc nghiệm, phân tích ảnh thời khóa biểu, chấm bài, hoặc hỗ trợ các công việc chuyên môn khác. Thầy/cô cần hỗ trợ gì hôm nay ạ? 🌟',
+      sender: 'ai',
+      timestamp: new Date(),
+    },
   ]);
+  const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages, isOpen]);
+    scrollToBottom();
+  }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-    const userMsg = input.trim();
-    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setInput('');
+  const handleSend = () => {
+    if (!inputText.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputText.trim(),
+      sender: 'user',
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText('');
     setIsLoading(true);
-    try {
-      const response = await chatWithAI(userMsg);
-      setMessages(prev => [...prev, { role: 'ai', text: response || 'Lỗi kết nối AI.' }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { role: 'ai', text: 'Vui lòng kiểm tra lại kết nối hoặc API Key.' }]);
-    } finally {
+
+    // Tạm thời: Phản hồi giả từ AI (sau này thay bằng gọi Gemini thật)
+    setTimeout(() => {
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Tính năng trò chuyện với Gemini AI đang được hoàn thiện. Hiện tại thầy/cô có thể sử dụng các công cụ khác như:\n• Soạn bài AI\n• Tạo rubric đánh giá\n• Quản lý sổ điểm thông minh\n\nMình sẽ sớm cập nhật đầy đủ tính năng chat AI nhé! 🚀',
+        sender: 'ai',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiResponse]);
       setIsLoading(false);
+    }, 1500);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-[100]">
-      {isOpen ? (
-        <div className="bg-white/95 backdrop-blur-xl w-[400px] h-[600px] rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col border border-white overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-500">
-          <div className="bg-[#061631] p-6 flex items-center justify-between text-white border-b border-white/5">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <i className="fas fa-sparkles text-lg animate-pulse"></i>
-              </div>
-              <div>
-                <h3 className="font-black text-[11px] uppercase tracking-widest italic">TRỢ LÝ AI VIETEDU</h3>
-                <div className="flex items-center gap-1.5 mt-1">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                   <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Sẵn sàng hỗ trợ</span>
-                </div>
-              </div>
-            </div>
-            <button onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors">
-              <i className="fas fa-times text-xs opacity-50"></i>
-            </button>
+    <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 z-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <i className="fas fa-robot text-xl"></i>
           </div>
-          <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-50/50 no-scrollbar">
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
-                <div className={`max-w-[85%] p-4 rounded-3xl text-[12px] font-medium leading-relaxed shadow-sm ${
-                  msg.role === 'user' ? 'bg-[#061631] text-white rounded-tr-none' : 'bg-white border border-slate-100 text-slate-700 rounded-tl-none italic'
-                }`}>
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start animate-pulse">
-                <div className="bg-white border border-slate-100 p-4 rounded-3xl rounded-tl-none flex gap-2">
-                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
-                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-100"></div>
-                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-200"></div>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="p-6 bg-white border-t border-slate-100 flex gap-3">
-            <div className="flex-1 bg-slate-100 rounded-2xl px-4 py-3 flex items-center border border-transparent focus-within:border-blue-500/20 focus-within:bg-white transition-all">
-              <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} placeholder="Hỏi trợ lý về soạn giảng..." className="bg-transparent flex-1 text-[11px] font-bold text-slate-700 outline-none placeholder-slate-400" />
-            </div>
-            <button onClick={handleSend} disabled={isLoading} className="w-12 h-12 bg-[#061631] text-[#ff9800] rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50">
-              <i className="fas fa-wand-magic-sparkles text-lg"></i>
-            </button>
+          <div>
+            <h3 className="font-bold text-lg">Trợ lý AI VietEdu</h3>
+            <p className="text-xs opacity-90 flex items-center gap-1">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+              Đang hoạt động
+            </p>
           </div>
         </div>
-      ) : (
-        <button onClick={() => setIsOpen(true)} className="group relative">
-          <div className="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-          <div className="bg-[#061631] text-white w-16 h-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform relative z-10 border border-white/10">
-            <i className="fas fa-sparkles text-2xl text-[#ff9800]"></i>
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
-               <span className="text-[8px] font-black">AI</span>
+        {/* Có thể thêm nút đóng sau */}
+      </div>
+
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-xs px-5 py-3 rounded-2xl shadow-md ${
+                msg.sender === 'user'
+                  ? 'bg-blue-600 text-white rounded-tr-none'
+                  : 'bg-white text-gray-800 rounded-tl-none border border-gray-200'
+              }`}
+            >
+              <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+              <p className={`text-xs mt-2 opacity-70 ${msg.sender === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+                {msg.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
           </div>
-        </button>
-      )}
+        ))}
+
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-white px-5 py-3 rounded-2xl rounded-tl-none border border-gray-200 shadow-md">
+              <div className="flex gap-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 bg-white border-t border-gray-200">
+        <div className="flex gap-3">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Nhập tin nhắn..."
+            rows={1}
+            className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm"
+            disabled={isLoading}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!inputText.trim() || isLoading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl px-6 py-3 transition-colors shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+          >
+            <i className="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 text-center mt-2">
+          Tính năng AI đang được phát triển • Dữ liệu không được lưu trữ
+        </p>
+      </div>
     </div>
   );
 };
