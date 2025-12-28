@@ -12,8 +12,8 @@ export const generateLessonPlan = async (req: Request, res: Response) => {
 
     const { data } = req.body;
 
-    // Gọi ai.generate() trực tiếp với object model
-    const response = await ai.generate({
+    // Sử dụng phương thức đúng SDK mới
+    const response = await ai.models.create({
       model: "gemini-1.5",
       prompt: data,
       temperature: 0.7
