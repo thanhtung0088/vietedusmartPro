@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "npx vite build"
+    "build": "npx vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
@@ -20,5 +20,8 @@
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.1.6",
     "vite": "^4.5.14"
+  },
+  "engines": {
+    "node": ">=18.18.0"
   }
 }
