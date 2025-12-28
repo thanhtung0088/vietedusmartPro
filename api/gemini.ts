@@ -1,8 +1,11 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, TextGenerationModel } from "@google/genai";
 import type { Request, Response } from "express";
 
-// Khởi tạo instance AI bằng API_KEY từ biến môi trường
+// Khởi tạo client AI với API_KEY từ biến môi trường
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+
+// Khởi tạo model Gemini cụ thể
+const model = new TextGenerationModel({ client: ai, model: "gemini-1.5" });
 
 export const generateLessonPlan = async (req: Request, res: Response) => {
   try {
@@ -10,15 +13,16 @@ export const generateLessonPlan = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "API Key chưa cấu hình trên Vercel" });
     }
 
+    // Lấy dữ liệu từ body
     const { data } = req.body;
 
-    // Phiên bản mới của SDK: dùng ai.generate() trực tiếp
-    const response = await ai.generate({
-      model: "gemini-1.5",
+    // Gọi model.generate() để tạo nội dung
+    const response = await model.generate({
       prompt: data,
       temperature: 0.7
     });
 
+    // Trả kết quả JSON
     return res.status(200).json(response);
   } catch (error: any) {
     console.error(error);
