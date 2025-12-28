@@ -12,10 +12,12 @@ export const generateLessonPlan = async (req: Request, res: Response) => {
 
     const { data } = req.body;
 
-    // Sử dụng phương thức đúng SDK mới
-    const response = await ai.models.create({
+    // Sử dụng API mới nhất: chat completion
+    const response = await ai.chat.completions.create({
       model: "gemini-1.5",
-      prompt: data,
+      messages: [
+        { role: "user", content: data }
+      ],
       temperature: 0.7
     });
 
