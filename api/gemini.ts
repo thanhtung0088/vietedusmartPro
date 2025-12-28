@@ -1,24 +1,26 @@
 import { GoogleGenAI } from "@google/genai";
+import type { Request, Response } from "express";
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+// Khởi tạo instance AI bằng API_KEY từ biến môi trường
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
+export const generateLessonPlan = async (req: Request, res: Response) => {
   try {
-    const ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
+    if (!process.env.API_KEY) {
+      return res.status(500).json({ error: "API Key chưa cấu hình trên Vercel" });
+    }
+
+    const { data } = req.body;
+
+    const response = await ai.models.generate({
+      model: "gemini-1.5",
+      prompt: data,
+      temperature: 0.7
     });
 
-    const result = await ai.models.generate({
-      model: "gemini-1.5-flash",
-      prompt: req.body.prompt,
-    });
-
-    res.status(200).json({
-      text: result.text || "",
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Gemini error" });
+    return res.status(200).json(response);
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: error.message || "Có lỗi xảy ra" });
   }
-}
+};
