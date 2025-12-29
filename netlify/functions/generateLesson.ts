@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
 
