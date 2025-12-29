@@ -1,22 +1,21 @@
-import VietEduSidebar from "./components/VietEduSidebar"
-import Dashboard from "./pages/Dashboard"
-import LessonPlanner from "./pages/LessonPlanner"
-import { Routes, Route } from "react-router-dom"
+import VietEduSidebar from "./components/VietEduSidebar";
+import Dashboard from "./pages/Dashboard";
+import LessonPlanner from "./pages/LessonPlanner";
+import { Routes, Route } from "react-router-dom";
 
 function App() {
   return (
-    <div className="flex">
+    <div className="flex h-screen">
       <VietEduSidebar />
 
-      <main className="flex-1 bg-gray-100 min-h-screen">
+      <main className="flex-1 p-6 bg-gray-50 overflow-auto">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/lesson-ai" element={<LessonPlanner />} />
-          <Route path="/gradebook" element={<div className="p-6">📊 Sổ điểm</div>} />
+          <Route path="/lesson-planner" element={<LessonPlanner />} />
         </Routes>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

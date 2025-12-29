@@ -1,35 +1,22 @@
-import { NavLink } from "react-router-dom"
+import { NavLink } from "react-router-dom";
 
-const menu = [
-  { to: "/", label: "TỔNG QUAN" },
-  { to: "/lesson-ai", label: "SOẠN BÀI AI" },
-  { to: "/gradebook", label: "SỔ ĐIỂM THÔNG MINH" },
-  { to: "/rubrics", label: "RUBRICS ĐÁNH GIÁ" },
-  { to: "/library", label: "KHO HỌC LIỆU" }
-]
-
-const VietEduSidebar = () => {
+export default function VietEduSidebar() {
   return (
-    <aside className="w-64 bg-blue-900 text-white min-h-screen">
-      <div className="p-4 font-bold text-xl border-b border-blue-700">
-        VIETEDU SMART
-      </div>
+    <aside className="w-64 bg-blue-900 text-white p-4">
+      <h1 className="text-xl font-bold mb-6">VIETEDUMIDDLE</h1>
 
-      {menu.map(item => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          className={({ isActive }) =>
-            `block p-4 ${
-              isActive ? "bg-blue-700" : "hover:bg-blue-800"
-            }`
-          }
-        >
-          {item.label}
+      <nav className="space-y-2">
+        <NavLink to="/" className="block px-3 py-2 rounded hover:bg-blue-700">
+          TỔNG QUAN
         </NavLink>
-      ))}
-    </aside>
-  )
-}
 
-export default VietEduSidebar
+        <NavLink
+          to="/lesson-planner"
+          className="block px-3 py-2 rounded hover:bg-blue-700"
+        >
+          SOẠN BÀI AI
+        </NavLink>
+      </nav>
+    </aside>
+  );
+}

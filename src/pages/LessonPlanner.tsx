@@ -1,15 +1,13 @@
-import React from "react";
-
-const LessonPlanner: React.FC = () => {
+export default function LessonPlanner() {
   return (
-    <div style={{ padding: "24px" }}>
-      <h1>🤖 Soạn Bài AI (Gemini)</h1>
-      <p>
-        Chức năng soạn bài AI đang hoạt động. 
-        Bước tiếp theo: kết nối Gemini API và form nhập nội dung bài dạy.
+    <div>
+      <h2 className="text-2xl font-bold mb-4">
+        🤖 Soạn bài AI (Gemini)
+      </h2>
+
+      <p className="text-gray-600">
+        Trang này sẽ dùng Gemini để soạn giáo án tự động.
       </p>
     </div>
   );
-};
-
-export default LessonPlanner;
+}
