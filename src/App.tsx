@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './App.css'; // Nếu có file CSS, giữ nguyên
+import './App.css';
 
 function App() {
   const [monHoc, setMonHoc] = useState('');
@@ -46,7 +46,7 @@ Viết bằng tiếng Việt chuẩn mực, rõ ràng, chi tiết, có ví dụ 
 
     try {
       const response = await fetch(
-            https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${API_KEY}
+        `https://generativelanguage.googleapis.com/v1/models/gemini-3-flash:generateContent?key=${API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,6 @@ Viết bằng tiếng Việt chuẩn mực, rõ ràng, chi tiết, có ví dụ 
       const data = await response.json();
       const text = data.candidates[0].content.parts[0].text;
 
-      // Định dạng đẹp hơn với markdown-like
       setKetQua(text);
     } catch (error: any) {
       console.error(error);
