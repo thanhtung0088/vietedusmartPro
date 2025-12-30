@@ -1,0 +1,8 @@
+{
+  "name": "VietEdu Smart - Lab Số 4.0",
+  "description": "Nền tảng giáo dục số thông minh dành cho giáo viên Việt Nam.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
