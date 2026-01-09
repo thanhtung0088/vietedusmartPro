@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+@theme {
+  /* Ví dụ: thêm màu tùy chỉnh */
+  --color-primary: #ff6b00;
+}
