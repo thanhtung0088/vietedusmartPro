@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-// Sidebar nằm trong thư mục components
+// Sửa thành Sidebar (bỏ chữ VietEdu đi cho khớp với file Thầy Cô đang có)
 import Sidebar from './components/Sidebar'; 
-// Dashboard nằm trong thư mục pages (theo hình image_b615f2.png)
+// Gọi Dashboard từ thư mục pages (vì hình ảnh cho thấy Dashboard.tsx nằm ở đây)
 import Dashboard from './pages/Dashboard';
 
 const App: React.FC = () => {
@@ -9,16 +9,15 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#0f172a] overflow-hidden text-white font-sans">
-      {/* Thanh Menu bên trái */}
       <Sidebar activeMenu={currentPage} onNavigate={setCurrentPage} />
-      
-      {/* Nội dung hiển thị bên phải */}
       <main className="flex-1 overflow-y-auto">
         {currentPage === 'TỔNG QUAN' ? (
           <Dashboard onNavigate={setCurrentPage} />
         ) : (
           <div className="flex items-center justify-center h-full text-slate-500 italic">
-            <h2 className="text-2xl font-black uppercase">Tính năng {currentPage} đang được cập nhật</h2>
+            <h2 className="text-2xl font-black uppercase tracking-widest">
+              Đang phát triển: {currentPage}
+            </h2>
           </div>
         )}
       </main>
