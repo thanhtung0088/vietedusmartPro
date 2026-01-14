@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import VietEduSidebar from './components/VietEduSidebar';
+import import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import LessonPlanner from './pages/LessonPlanner';
 import ClassBook from './pages/ClassBook';
