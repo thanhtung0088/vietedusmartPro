@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-// Chỗ này phải là Sidebar (không có chữ VietEdu phía trước)
-import Sidebar from './components/Sidebar'; 
+import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 
 const App: React.FC = () => {
