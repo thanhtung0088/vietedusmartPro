@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import Dashboard from './pages/Dashboard';
+import Sidebar from './src/components/Sidebar';
+import Dashboard from './src/pages/Dashboard';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('TỔNG QUAN');
