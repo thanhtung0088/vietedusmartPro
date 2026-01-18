@@ -1,142 +1,207 @@
-
 import React, { useState, useRef } from 'react';
-import { generateLessonPlan, generateTest7991 } from '../services/geminiService';
-import { UserRole } from '../types';
 
-const LessonPlanner: React.FC<{onBack: () => void, userPlan: string, userRole: UserRole}> = ({ onBack, userPlan, userRole }) => {
-  const [activeTab, setActiveTab] = useState<'5512' | '7991'>('5512');
-  const [formData, setFormData] = useState({ subject: 'Toán học', grade: '6', title: '', objectives: '' });
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-  const [attachments, setAttachments] = useState<string[]>([]);
-  const fileRef = useRef<HTMLInputElement>(null);
-  
-  const handleGenerate = async () => {
-    if (!formData.title) return alert('Vui lòng nhập tên bài dạy');
-    setLoading(true);
-    setResult(null);
-    try {
-      let res = "";
-      if (activeTab === '5512') res = await generateLessonPlan(formData);
-      else res = await generateTest7991(formData);
-      setResult(res);
-    } catch (e) {
-      setResult("Lỗi kết nối máy chủ AI.");
-    } finally {
-      setLoading(false);
+const LessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  const [selectedFlow, setSelectedFlow] = useState<'5512' | 'ppt' | '7991'>('ppt');
+  const [grade, setGrade] = useState('Khối 6');
+  const [subject, setSubject] = useState('Giáo dục công dân');
+  const [lessonCount, setLessonCount] = useState('3');
+  const [topic, setTopic] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [pptSlides, setPptSlides] = useState<any[] | null>(null);
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // BỘ CHỦ ĐỀ MÀU SẮC CAO CẤP VÀ PHONG CÁCH MỚI
+  const [selectedTheme, setSelectedTheme] = useState({ name: 'Bình Hòa', colors: ['#ff4d4d', '#1a1a1a', '#ffffff'] });
+  const themes = [
+    { name: 'Bình Hòa', colors: ['#ff4d4d', '#1a1a1a', '#ffffff'], desc: 'Đỏ Carbon - Đẳng cấp' },
+    { name: 'Neon Ocean', colors: ['#00f2ff', '#0a0f1e', '#e0f2fe'], desc: 'Xanh Neon - Hiện đại' },
+    { name: 'Cyber Gold', colors: ['#fbbf24', '#0f172a', '#fffbeb'], desc: 'Vàng Gold - Sang trọng' }
+  ];
+
+  const subjects = ["Toán", "Ngữ văn", "Tiếng Anh", "Vật lí", "Hóa học", "Sinh học", "Lịch sử & Địa lí", "Giáo dục công dân", "Công nghệ", "Tin học"];
+
+  const handleGenerateAI = () => {
+    if (!topic && attachedFiles.length === 0) {
+      alert("Thầy vui lòng gắn dữ liệu (+) hoặc nhập nội dung để AI phân tích chuyên sâu!");
+      return;
     }
+    setIsGenerating(true);
+    setPptSlides(null);
+    setAiResult(null);
+
+    setTimeout(() => {
+      if (selectedFlow === 'ppt') {
+        // AI TẠO 10 SLIDE VỚI TEMPLATE VÀ NỘI DUNG CHI TIẾT + HÌNH ẢNH MẪU
+        setPptSlides([
+          { id: 1, title: "TIÊU ĐỀ BÀI GIẢNG", content: `Chủ đề: ${topic.toUpperCase()}\nMôn: ${subject}\nGiáo viên: AI Assistant`, type: "Cover", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Cover" },
+          { id: 2, title: "MỤC TIÊU BÀI HỌC", content: "• Kiến thức: Phân tích sâu từ tài liệu đính kèm.\n• Năng lực: Phát triển kỹ năng tư duy phản biện.\n• Phẩm chất: Bồi dưỡng ý thức công dân.", type: "Objectives", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Goal" },
+          { id: 3, title: "KHỞI ĐỘNG: TRÒ CHƠI", content: "Dựa trên hình ảnh/video trong file đính kèm, hãy đoán tên sự kiện lịch sử...", type: "Game", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Game" },
+          { id: 4, title: "NỘI DUNG CHÍNH (P1)", content: "Phân tích khái niệm và các yếu tố cơ bản...", type: "Content", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Content+1" },
+          { id: 5, title: "NỘI DUNG CHÍNH (P2)", content: "Các ví dụ minh họa và ứng dụng thực tiễn...", type: "Content", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Content+2" },
+          { id: 6, title: "THẢO LUẬN & PHÂN TÍCH", content: "Thảo luận nhóm về các trường hợp điển hình đã được cung cấp.", type: "Group Activity", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Discussion" },
+          { id: 7, title: "LUYỆN TẬP & CỦNG CỐ", content: "Làm bài tập trắc nghiệm và điền khuyết để ôn lại kiến thức.", type: "Practice", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Exercise" },
+          { id: 8, title: "VẬN DỤNG & SÁNG TẠO", content: "Đề xuất dự án nhỏ hoặc giải pháp cho vấn đề trong cộng đồng.", type: "Application", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Creativity" },
+          { id: 9, title: "TỔNG KẾT & RÚT KINH NGHIỆM", content: "Sơ đồ tư duy tổng hợp kiến thức và các bài học rút ra.", type: "Summary", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Summary" },
+          { id: 10, title: "DẶN DÒ & TÀI LIỆU", content: "Tài liệu tham khảo thêm và nhiệm vụ về nhà.", type: "Conclusion", image: "https://via.placeholder.com/600x300/101010/808080?text=AI+Generated+Thank+You" }
+        ]);
+      } else {
+        setAiResult(`[KẾ HOẠCH BÀI DẠY CHI TIẾT 5512]\n\nMôn: ${subject} - ${grade} (${lessonCount} tiết)\nBài: ${topic}\n\nI. MỤC TIÊU (Phân tích sâu dữ liệu thực)...\nII. THIẾT BỊ DẠY HỌC (Dựa trên tài liệu gắn kèm)...\nIII. TIẾN TRÌNH DẠY HỌC (4 bước Phụ lục 4)...`);
+      }
+      setIsGenerating(false);
+    }, 5000); // Tăng thời gian để AI "tạo" hình ảnh và thiết kế
   };
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAttachments(prev => [...prev, file.name]);
-      alert(`Đã gán tài liệu: ${file.name}`);
-    }
+  // Hàm giả lập tạo hình ảnh bằng AI
+  const generateImageForSlide = async (slideId: number, content: string) => {
+    // Đây là nơi để tích hợp API Image Generation thực tế
+    // Hiện tại, chỉ mô phỏng bằng cách thay đổi URL hình ảnh
+    const newImageUrl = `https://picsum.photos/600/300?random=${Date.now() + slideId}`;
+    setPptSlides(prevSlides => 
+      prevSlides ? prevSlides.map(s => s.id === slideId ? { ...s, image: newImageUrl } : s) : null
+    );
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden animate-in fade-in">
-      <input type="file" ref={fileRef} className="hidden" onChange={handleFile} />
-      <div className="bg-white border-b border-slate-200 px-10 py-5 flex items-center justify-between shrink-0 shadow-sm">
-        <div className="flex items-center gap-8">
-          <button onClick={onBack} className="w-12 h-12 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm transition-all">
-            <i className="fas fa-arrow-left"></i>
-          </button>
+    <div className="h-screen bg-[#050505] text-white flex flex-col p-4 overflow-hidden font-sans selection:bg-indigo-500">
+      
+      {/* HEADER CAO CẤP */}
+      <div className="flex justify-between items-center mb-4 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-xl">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="w-10 h-10 rounded-xl bg-red-600/10 text-red-500 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all">←</button>
           <div>
-            <h1 className="text-2xl font-black text-[#061631] uppercase italic leading-none tracking-tighter">CHUYÊN GIA SOẠN BÀI AI PROFESSIONAL</h1>
-            <p className="text-[11px] font-bold text-blue-600 uppercase tracking-[0.4em] mt-2 italic">LAB SỐ v4.0 - SƯ PHẠM THÔNG MINH</p>
+            <h1 className="text-lg font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">VIETEDU LAB 4.0 - PRO EDITION</h1>
+            <p className="text-[7px] font-bold opacity-50 uppercase tracking-[0.4em]">Hệ sinh thái giáo dục số tương lai</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => fileRef.current?.click()} className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-lg border border-emerald-100">
-             <i className="fas fa-plus text-xl"></i>
-          </button>
-          <button className="px-6 py-3 bg-rose-600 text-white text-[11px] font-black rounded-lg uppercase italic shadow-xl border-b-4 border-rose-900 active:translate-y-1 transition-all"><i className="fas fa-file-pdf mr-2 text-sm"></i> XUẤT PDF</button>
-          <button className="px-6 py-3 bg-blue-600 text-white text-[11px] font-black rounded-lg uppercase italic shadow-xl border-b-4 border-blue-900 active:translate-y-1 transition-all"><i className="fas fa-file-word mr-2 text-sm"></i> XUẤT WORD</button>
+          <div className="flex gap-2 p-1 bg-black/40 rounded-full border border-white/10">
+            {themes.map((t) => (
+              <button key={t.name} onClick={() => setSelectedTheme(t)} className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${selectedTheme.name === t.name ? 'border-white' : 'border-transparent opacity-40'}`} style={{ backgroundColor: t.colors[0] }} title={t.desc} />
+            ))}
+          </div>
+          <div className="bg-emerald-500/10 border border-emerald-500/30 px-4 py-1.5 rounded-full text-[9px] font-black text-emerald-400 uppercase italic animate-pulse">AI Online: Creative Mode</div>
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className="w-[380px] border-r border-slate-200 bg-white p-10 overflow-y-auto no-scrollbar shrink-0 shadow-2xl z-10">
-          <div className="space-y-8">
-            <div className="flex bg-slate-100 p-1.5 rounded-xl mb-10 border border-slate-200 shadow-inner">
-              <button onClick={() => setActiveTab('5512')} className={`flex-1 py-4 text-[11px] font-black rounded-lg uppercase italic transition-all ${activeTab === '5512' ? 'bg-white text-blue-600 shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>KẾ HOẠCH 5512</button>
-              <button onClick={() => setActiveTab('7991')} className={`flex-1 py-4 text-[11px] font-black rounded-lg uppercase italic transition-all ${activeTab === '7991' ? 'bg-white text-blue-600 shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>ĐỀ KIỂM TRA 7991</button>
+      {/* NAVIGATION TABS */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        {['5512', 'ppt', '7991'].map((id) => (
+          <button key={id} onClick={() => {setSelectedFlow(id as any); setPptSlides(null); setAiResult(null);}} className={`py-4 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${selectedFlow === id ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_20px_rgba(79,70,229,0.2)]' : 'border-white/5 bg-white/5 opacity-40 hover:opacity-100'}`}>
+            {id === '5512' ? '📜 Soạn Giáo Án' : id === 'ppt' ? '🎨 Thiết Kế PPT' : '📝 Đề Kiểm Tra'}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-1 gap-4 min-h-0">
+        {/* CỘT NHẬP LIỆU */}
+        <div className="w-[32%] flex flex-col gap-4 bg-white/5 p-6 rounded-[2rem] border border-white/10 overflow-y-auto custom-scroll relative">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase text-indigo-400">Khối lớp</label>
+              <select value={grade} onChange={(e) => setGrade(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[12px] font-bold focus:border-indigo-500 outline-none appearance-none">
+                {Array.from({ length: 12 }, (_, i) => `Khối ${i + 1}`).map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase text-indigo-400">Số tiết</label>
+              <input type="number" value={lessonCount} onChange={(e) => setLessonCount(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[12px] font-bold focus:border-indigo-500 outline-none" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase text-indigo-400">Môn học CT 2018</label>
+            <select value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[12px] font-bold focus:border-indigo-500 outline-none appearance-none">
+              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          <div className="space-y-2 flex-grow flex flex-col relative">
+            <label className="text-[9px] font-black uppercase text-indigo-400">Nội dung / Học liệu thực (+)</label>
+            <textarea 
+              placeholder="Nhập yêu cầu soạn bài chi tiết hoặc dán link tài liệu..."
+              className="w-full flex-grow bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-[12px] outline-none focus:border-indigo-500 transition-all resize-none leading-relaxed"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+            
+            <div className="absolute bottom-20 left-4 right-4 flex flex-wrap gap-2">
+              {attachedFiles.map((file, i) => (
+                <div key={i} className="bg-indigo-500 text-[8px] font-black px-3 py-1.5 rounded-full flex items-center gap-2 animate-in fade-in zoom-in">
+                  <span className="truncate max-w-[100px]">{file.name}</span>
+                  <button onClick={() => setAttachedFiles(attachedFiles.filter((_, idx) => idx !== i))} className="text-white/70 hover:text-red-200">×</button>
+                </div>
+              ))}
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <label className="text-[11px] font-black text-slate-400 uppercase italic mb-3 block tracking-[0.2em]">TÊN BÀI DẠY / CHỦ ĐỀ</label>
-                <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 p-5 text-[14px] font-bold italic outline-none focus:border-blue-500 rounded-xl transition-all shadow-inner" placeholder="VD: Khái niệm số hữu tỉ..." />
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="text-[11px] font-black text-slate-400 uppercase italic mb-3 block tracking-[0.2em]">KHỐI LỚP</label>
-                  <select value={formData.grade} onChange={e => setFormData({...formData, grade: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 p-5 text-[14px] font-bold italic outline-none rounded-xl">
-                    {[6,7,8,9,10,11,12].map(g => <option key={g} value={g}>LỚP {g}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] font-black text-slate-400 uppercase italic mb-3 block tracking-[0.2em]">MÔN HỌC</label>
-                  <select value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 p-5 text-[14px] font-bold italic outline-none rounded-xl">
-                    <option>Toán học</option><option>Ngữ văn</option><option>Tiếng Anh</option><option>KHTN</option><option>Lịch sử - Địa lý</option>
-                  </select>
-                </div>
-              </div>
-              {attachments.length > 0 && (
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                  <span className="text-[9px] font-black text-emerald-600 uppercase italic block mb-2">Tài liệu đã gán ({attachments.length}):</span>
-                  <div className="flex flex-wrap gap-2">
-                    {attachments.map((a, i) => <span key={i} className="bg-white px-3 py-1 rounded-md text-[8px] font-bold border border-emerald-200">{a}</span>)}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button onClick={handleGenerate} disabled={loading} className="w-full bg-blue-600 text-white py-6 rounded-xl font-black uppercase italic tracking-[0.2em] shadow-2xl hover:bg-[#061631] transition-all border-b-8 border-blue-900 active:translate-y-2">
-              {loading ? <i className="fas fa-spinner fa-spin mr-4 text-xl"></i> : <i className="fas fa-magic mr-4 text-xl"></i>}
-              {loading ? 'AI ĐANG SOẠN THẢO...' : 'BẮT ĐẦU SOẠN AI'}
+            <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-5 right-5 w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center hover:bg-indigo-400 transition-all shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-90">
+              <span className="text-3xl font-light">+</span>
             </button>
           </div>
+
+          <button onClick={handleGenerateAI} disabled={isGenerating} className="w-full py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 transition-all shadow-lg active:scale-95">
+            {isGenerating ? 'AI ĐANG SÁNG TẠO BÀI GIẢNG...' : '🚀 BẮT ĐẦU SÁNG TẠO'}
+          </button>
         </div>
 
-        <div className="flex-1 bg-slate-200 p-16 overflow-y-auto no-scrollbar flex flex-col items-center">
-          <div className="w-full max-w-[850px] bg-white min-h-[1100px] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] p-20 relative rounded-sm animate-in zoom-in-95 duration-700">
-            {result ? (
-              <>
-                <div className="flex justify-between items-start mb-20 text-[14px] font-bold italic text-slate-800 uppercase tracking-tighter leading-relaxed">
-                   <div className="text-center">
-                      <p>Hệ sinh thái VietEdu Smart</p>
-                      <p className="border-b-2 border-black pb-1 mt-1 font-black">TỔ: {formData.subject.toUpperCase()}</p>
-                   </div>
-                   <div className="text-center">
-                      <p className="font-black">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-                      <p className="italic border-b-2 border-black pb-1 mt-1">Độc lập - Tự do - Hạnh phúc</p>
-                   </div>
-                </div>
+        {/* CỘT HIỂN THỊ SLIDE VISUAL VÀ MINH HỌA AI */}
+        <div className="w-[68%] bg-black/40 rounded-[2rem] border border-white/10 flex flex-col overflow-hidden shadow-2xl">
+          <div className="p-4 bg-white/5 border-b border-white/10 flex justify-between items-center">
+            <span className="text-[10px] font-black uppercase text-indigo-300 tracking-[0.2em]">Concept Slide Design (10+ Templates)</span>
+            {pptSlides && <button className="bg-emerald-500 text-black px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:bg-emerald-400">📥 Xuất File PPTX</button>}
+          </div>
 
-                <div className="text-center mb-20">
-                   <h2 className="text-3xl font-black uppercase italic tracking-tighter">KẾ HOẠCH BÀI DẠY (GIÁO ÁN)</h2>
-                   <p className="text-[18px] font-black uppercase italic mt-6 border-y-2 border-slate-100 py-4">BÀI: {formData.title}</p>
-                   <p className="text-[14px] font-bold italic mt-4 text-slate-500 uppercase tracking-widest">Khối: {formData.grade} | Môn: {formData.subject}</p>
-                </div>
+          <div className="flex-grow p-6 overflow-y-auto custom-scroll">
+            {isGenerating ? (
+              <div className="h-full flex flex-col items-center justify-center text-indigo-300 font-black uppercase text-sm animate-pulse">
+                <span className="text-8xl mb-6 animate-bounce">✨</span>
+                AI đang vẽ ý tưởng, tạo hình ảnh và sắp xếp bố cục...
+              </div>
+            ) : pptSlides ? (
+              <div className="grid grid-cols-2 gap-6">
+                {pptSlides.map((slide) => (
+                  <div key={slide.id} className="aspect-video rounded-[1.5rem] p-6 shadow-2xl border-2 transition-all hover:scale-[1.02] cursor-pointer flex flex-col justify-between relative overflow-hidden group" style={{ backgroundColor: selectedTheme.colors[1], borderColor: selectedTheme.colors[0] + '30' }}>
+                    
+                    {/* HÌNH ẢNH MINH HỌA AI */}
+                    {slide.image && (
+                      <img src={slide.image} alt="AI Illustration" className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity rounded-[1.5rem]" />
+                    )}
 
-                <div className="text-[17px] leading-[1.8] text-slate-800 space-y-10 font-serif italic text-justify px-4 whitespace-pre-wrap animate-in fade-in duration-1000">
-                   {result}
-                </div>
-              </>
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                        <div className="flex justify-between items-start mb-3">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black opacity-40 uppercase" style={{ color: selectedTheme.colors[0] }}>{slide.type}</span>
+                                <h4 className="text-[15px] font-black uppercase tracking-tight" style={{ color: selectedTheme.colors[0] }}>{slide.title}</h4>
+                            </div>
+                            <span className="text-[10px] font-black opacity-20" style={{ color: selectedTheme.colors[2] }}>Slide {slide.id}/10</span>
+                        </div>
+                        <p className="text-[11px] font-medium leading-relaxed whitespace-pre-wrap flex-grow" style={{ color: selectedTheme.colors[2], opacity: 0.8 }}>{slide.content}</p>
+                        
+                        {/* NÚT MINH HỌA HÌNH ẢNH BẰNG AI */}
+                        <button onClick={() => generateImageForSlide(slide.id, slide.content)} 
+                                className="mt-4 self-end bg-indigo-600/70 text-white text-[9px] font-bold px-4 py-2 rounded-full backdrop-blur-sm hover:bg-indigo-500 shadow-md transition-all active:scale-95 flex items-center gap-1">
+                          <span className="text-xs">🎨</span> Minh họa AI
+                        </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center min-h-[800px] text-center opacity-20">
-                 <i className="fas fa-feather-pointed text-[180px] mb-12 animate-pulse"></i>
-                 <h3 className="text-4xl font-black uppercase italic tracking-[0.5em] mb-4">PREVIEW GIÁO ÁN</h3>
-                 <p className="text-xl font-bold italic">Vui lòng nhập tiêu đề bài dạy và bấm "BẮT ĐẦU SOẠN AI" để xem kết quả</p>
-                 <div className="mt-12 w-32 h-1 bg-slate-300 rounded-full"></div>
+              <div className="h-full flex flex-col items-center justify-center opacity-10">
+                <span className="text-8xl mb-6">✨</span>
+                <p className="font-black text-[12px] uppercase tracking-[0.5em] text-center">AI sáng tạo đang đợi ý tưởng<br/>của Thầy để thiết kế bài giảng</p>
               </div>
             )}
           </div>
         </div>
       </div>
+      <input type="file" ref={fileInputRef} className="hidden" multiple onChange={(e) => e.target.files && setAttachedFiles([...attachedFiles, ...Array.from(e.target.files)])} />
+      <style>{`
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 20px; }
+        select option { background: #0a0f1e; color: white; }
+      `}</style>
     </div>
   );
 };

@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VietEdu Smart - Lab Số 4.0</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/all.min.js" crossorigin="anonymous"></script>
-    <script>
-        window.process = { env: { API_KEY: "" } };
-    </script>
+
+    <!-- Font và toàn bộ style custom đẹp như trước -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        
+       
         :root {
             --radius-smart: 12px;
             --radius-btn: 12px;
         }
-
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: #f1f5f9;
@@ -27,15 +29,15 @@
             height: 100vh;
             width: 100vw;
         }
-
+        /* Bo tròn mạnh cho tất cả các thẻ và nút */
         .rounded-2xl, .rounded-3xl, .rounded-\[2rem\], .rounded-\[2\.5rem\], .rounded-\[3\.5rem\], .rounded-\[4rem\], .rounded-full, .rounded-xl {
             border-radius: var(--radius-smart) !important;
         }
-        
+       
         button, input, select, textarea, div.card {
             border-radius: var(--radius-btn) !important;
         }
-
+        /* Layout sidebar và main */
         #vietedu-sidebar {
             width: 250px !important;
             min-width: 250px !important;
@@ -45,7 +47,6 @@
             z-index: 50;
             display: flex; flex-direction: column;
         }
-
         #vietedu-main {
             margin-left: 250px !important;
             width: calc(100vw - 250px) !important;
@@ -54,38 +55,38 @@
             background: #f1f5f9;
             position: relative;
         }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
+       
+        /* Chữ vàng gradient đẹp lung linh */
         .gold-gradient-text {
             background: linear-gradient(to bottom, #fde68a, #f59e0b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 900;
         }
-
+        /* Shadow 3D cực mạnh */
         .shadow-3d-extreme {
             box-shadow: 0 20px 50px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.05);
         }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react-dom": "https://esm.sh/react-dom@18.3.1",
-    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-    "@google/genai": "https://esm.sh/@google/genai@1.3.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
-  }
-}
-</script>
+
+    <!-- Import map cho React và Gemini -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom": "https://esm.sh/react-dom@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+        "@google/genai": "https://esm.sh/@google/genai@1.3.0",
+        "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+        "react/": "https://esm.sh/react@18.3.1/"
+      }
+    }
+    </script>
 </head>
 <body>
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

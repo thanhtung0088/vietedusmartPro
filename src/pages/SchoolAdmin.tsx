@@ -1,270 +1,230 @@
+import React, { useState } from 'react';
 
-import React, { useState, useEffect, useRef } from 'react';
-import ZoomMeeting from './ZoomMeeting';
-import AdminOffice from './AdminOffice';
-import VietEduChat from '../components/VietEduChat';
+const THCS_BinhHoa_Elite_Final_2026: React.FC = () => {
+  const [activeSubMenu, setActiveSubMenu] = useState('hr');
+  const [currentWorkSpace, setCurrentWorkSpace] = useState<string | null>(null);
+  const [isZaloOpen, setIsZaloOpen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
-interface StaffMember {
-  id: string;
-  name: string;
-  isFemale: boolean;
-  isPermanent: boolean;
-  isProbation: boolean;
-  isContract: boolean;
-  duty: string;
-  subject: string;
-  classes: string;
-  teachingPeriods: number;
-  classManager: string;
-  concurrentDuty: string;
-  totalPeriods: number;
-  standardPeriods: number;
-  overtime: number;
-  notes: string;
-}
+  const SCHOOL_NAME = "THCS BÌNH HÒA - QUẢN TRỊ SỐ 2026";
 
-const SchoolAdmin: React.FC<{onBack: () => void, initialTab?: string}> = ({ onBack, initialTab = 'hr' }) => {
-  const [activeMenu, setActiveMenu] = useState(initialTab);
-  const [showZoom, setShowZoom] = useState(false);
-  const [showZalo, setShowZalo] = useState(false);
-  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
-  const [excelPasteData, setExcelPasteData] = useState('');
-  const [staffData, setStaffData] = useState<StaffMember[]>([]);
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const sideMenus = [
-    { id: 'hr', label: 'NHÂN SỰ & TỔ CHỨC', icon: 'fa-users' },
-    { id: 'office', label: 'HÀNH CHÍNH VĂN PHÒNG', icon: 'fa-building-shield' },
-    { id: 'reports', label: 'BÁO CÁO TỔNG HỢP', icon: 'fa-chart-pie' },
-    { id: 'dang', label: 'PHÁT TRIỂN ĐẢNG', icon: 'fa-asterisk' },
-    { id: 'union', label: 'CÔNG ĐOÀN - ĐOÀN THỂ', icon: 'fa-people-group' },
-    { id: 'pro', label: 'CHỈ ĐẠO CHUYÊN MÔN', icon: 'fa-book' },
-    { id: 'infra', label: 'CƠ SỞ VẬT CHẤT', icon: 'fa-landmark' },
+  // SIDEBAR 9 MỤC ĐÚNG MẪU
+  const sidebarMenus = [
+    { id: 'hr', label: 'Nhân sự & Tổ chức', icon: 'fa-users-gear' },
+    { id: 'office', label: 'Hành chính Văn phòng', icon: 'fa-building-columns' },
+    { id: 'party', label: 'Chi bộ', icon: 'fa-star' },
+    { id: 'union', label: 'Công đoàn', icon: 'fa-hands-holding-child' },
+    { id: 'finance', label: 'Quản lý Tài chính', icon: 'fa-money-check-dollar' },
+    { id: 'academic', label: 'Quản lý Chuyên môn', icon: 'fa-book-open-reader' },
+    { id: 'facilities', label: 'Quản lý Cơ sở vật chất', icon: 'fa-school-lock' },
+    { id: 'reports', label: 'Báo cáo tổng hợp', icon: 'fa-chart-pie' },
+    { id: 'tkb', label: 'Soạn TKB AI', icon: 'fa-robot' },
   ];
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('vietedu_staff_list_final_v6');
-      if (saved) setStaffData(JSON.parse(saved));
-      else setStaffData([]);
-    } catch (e) { console.error(e); }
-  }, []);
+  // HÀNH CHÍNH 8 BỘ PHẬN
+  const officeDepts = [
+    { label: 'Kế toán - Tài vụ', icon: 'fa-file-invoice-dollar', color: 'bg-blue-600' },
+    { label: 'Học vụ - Văn thư', icon: 'fa-folder-tree', color: 'bg-emerald-600' },
+    { label: 'Công nghệ thông tin', icon: 'fa-laptop-code', color: 'bg-indigo-600' },
+    { label: 'Thư viện', icon: 'fa-book-bookmark', color: 'bg-orange-600' },
+    { label: 'Tư vấn học đường', icon: 'fa-user-doctor', color: 'bg-rose-600' },
+    { label: 'Đoàn - Đội', icon: 'fa-flag', color: 'bg-red-600' },
+    { label: 'Bảo vệ - Phục vụ', icon: 'fa-shield-halved', color: 'bg-slate-600' },
+    { label: 'Giám thị', icon: 'fa-user-shield', color: 'bg-cyan-700' },
+  ];
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  };
-
-  if (activeMenu === 'office') return <AdminOffice onBack={() => setActiveMenu('hr')} />;
-
-  const renderContent = () => {
-    if (activeMenu === 'hr') {
-      return (
-        <div className="w-full h-full overflow-auto border-t border-slate-300 bg-white shadow-inner relative animate-in fade-in duration-500">
-          <table className="w-full border-collapse text-[11px] min-w-[2400px] bg-white">
-            <thead className="bg-[#f1f5f9] text-[#061631] sticky top-0 z-20 font-black uppercase italic border-b-2 border-slate-300">
-              <tr>
-                <th rowSpan={2} className="p-5 border border-slate-300 w-12 text-center">TT</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 min-w-[300px] text-left">Họ và tên giáo viên</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 w-14 text-center">Nữ</th>
-                <th colSpan={3} className="p-2 border border-slate-300 text-center bg-slate-100/50">Tình hình biên chế</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Công tác chính</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Môn dạy</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center min-w-[350px]">Lớp (khối) dạy</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Số tiết dạy</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Chủ nhiệm</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center min-w-[200px]">Công tác kiêm nhiệm</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Tổng tiết/tuần</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Tiết chuẩn</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Tiết phụ trội</th>
-                <th rowSpan={2} className="p-5 border border-slate-300 text-center">Ghi chú</th>
-              </tr>
-              <tr className="bg-slate-50">
-                <th className="p-3 border border-slate-300 text-center w-24 italic font-bold">Biên chế</th>
-                <th className="p-3 border border-slate-300 text-center w-24 italic font-bold">Tập sự</th>
-                <th className="p-3 border border-slate-300 text-center w-24 italic font-bold">Hợp đồng</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {staffData.length > 0 ? staffData.map((s, idx) => (
-                <tr key={s.id} className="h-16 font-bold text-slate-700 hover:bg-blue-50 transition-colors">
-                  <td className="p-4 text-center border border-slate-200 bg-slate-50/50">{idx + 1}</td>
-                  <td className="p-4 border border-slate-200 uppercase italic text-[#061631]">{s.name}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.isFemale ? 'x' : ''}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.isPermanent ? 'x' : ''}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.isProbation ? 'x' : ''}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.isContract ? 'x' : ''}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.duty}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.subject}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.classes}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.teachingPeriods}</td>
-                  <td className="p-4 text-center border border-slate-200 font-black text-blue-600 italic">{s.classManager}</td>
-                  <td className="p-4 text-center border border-slate-200 italic">{s.concurrentDuty}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.totalPeriods}</td>
-                  <td className="p-4 text-center border border-slate-200">{s.standardPeriods}</td>
-                  <td className="p-4 text-center border border-slate-200 text-rose-600 font-black">{s.overtime > 0 ? s.overtime : ''}</td>
-                  <td className="p-4 border border-slate-200 italic">{s.notes}</td>
-                </tr>
-              )) : (
-                <tr><td colSpan={16} className="p-60 text-center opacity-10 uppercase font-black tracking-[0.4em] text-3xl italic">Chưa có dữ liệu nhân sự nạp vào hệ thống</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      );
-    }
-    
-    if (activeMenu === 'reports') {
-      return (
-        <div className="p-16 space-y-12 h-full overflow-auto animate-in zoom-in-95 duration-500">
-           <div className="grid grid-cols-3 gap-10">
-              <div className="bg-gradient-to-br from-blue-50 to-white p-12 rounded-[2.5rem] border border-blue-100 shadow-xl relative overflow-hidden group">
-                 <h4 className="text-[12px] font-black text-blue-600 uppercase italic mb-4 tracking-widest">TỔNG NHÂN SỰ</h4>
-                 <p className="text-6xl font-black text-[#061631] italic">{staffData.length}</p>
-                 <i className="fas fa-users absolute -bottom-6 -right-6 text-8xl text-blue-100 opacity-50"></i>
-              </div>
-              <div className="bg-gradient-to-br from-emerald-50 to-white p-12 rounded-[2.5rem] border border-emerald-100 shadow-xl relative overflow-hidden group">
-                 <h4 className="text-[12px] font-black text-emerald-600 uppercase italic mb-4 tracking-widest">BIÊN CHẾ CHUẨN</h4>
-                 <p className="text-6xl font-black text-[#061631] italic">{staffData.filter(s => s.isPermanent).length}</p>
-                 <i className="fas fa-id-card absolute -bottom-6 -right-6 text-8xl text-emerald-100 opacity-50"></i>
-              </div>
-              <div className="bg-gradient-to-br from-rose-50 to-white p-12 rounded-[2.5rem] border border-rose-100 shadow-xl relative overflow-hidden group">
-                 <h4 className="text-[12px] font-black text-rose-600 uppercase italic mb-4 tracking-widest">VƯỢT GIỜ / PHỤ TRỘI</h4>
-                 <p className="text-6xl font-black text-[#061631] italic">{staffData.filter(s => s.overtime > 0).length}</p>
-                 <i className="fas fa-clock absolute -bottom-6 -right-6 text-8xl text-rose-100 opacity-50"></i>
-              </div>
-           </div>
-        </div>
-      )
-    }
-
-    return <div className="h-full flex flex-col items-center justify-center opacity-5 grayscale"><i className="fas fa-folder-open text-[150px] mb-10"></i><p className="text-2xl font-black uppercase italic tracking-[0.5em]">PHÂN HỆ TRỐNG</p></div>;
-  };
+  // 6 PHÂN HỆ BÁO CÁO
+  const reportData = [
+    { title: "I. KẾ HOẠCH & BÁO CÁO CHUNG", items: ["Kế hoạch giáo dục tổ chuyên môn (Năm học)", "Kế hoạch hoạt động chuyên môn tháng/tuần", "Biên bản họp tổ chuyên môn định kỳ", "Biên bản họp xét thi đua đợt 1, 2, 3, 4"] },
+    { title: "II. QUẢN LÝ DẠY HỌC & CHƯƠNG TRÌNH", items: ["Báo cáo thực hiện chương trình (Tiến độ)", "Báo cáo phân công giảng dạy và dạy thay", "Kế hoạch dạy học các môn học (Phân phối CT)"] },
+    { title: "III. HOẠT ĐỘNG CHUYÊN ĐỀ & THAO GIẢNG", items: ["Báo cáo sinh hoạt chuyên môn nghiên cứu bài học", "Kế hoạch thao giảng, dự giờ cấp tổ", "Tổng hợp nhận xét, đánh giá tiết dạy GV"] },
+    { title: "IV. BỒI DƯỠNG & KIỂM TRA NỘI BỘ", items: ["Báo cáo kiểm tra hồ sơ sổ sách giáo viên", "Báo cáo đánh giá chuẩn nghề nghiệp giáo viên", "Nhận xét, đánh giá viên chức hằng tháng"] },
+    { title: "V. HOẠT ĐỘNG HỌC SINH", items: ["Kế hoạch bồi dưỡng học sinh giỏi cấp tổ", "Báo cáo kết quả phụ đạo học sinh yếu kém", "Kế hoạch ngoại khóa chuyên môn"] },
+    { title: "VI. CHUYỂN ĐỔI SỐ & HỒ SƠ ĐIỆN TỬ", items: ["Báo cáo triển khai hồ sơ sổ sách điện tử", "Báo cáo sử dụng học bạ điện tử và chữ ký số"] },
+  ];
 
   return (
-    <div className="flex flex-col h-full bg-[#f1f5f9] animate-in fade-in duration-700 font-sans overflow-hidden">
-      {/* Dynamic Header */}
-      <div className="flex justify-between items-center px-12 py-10 bg-[#061631] text-white shrink-0 shadow-2xl relative z-10 rounded-b-[3rem]">
-        <div className="flex items-center gap-10">
-          <button onClick={onBack} className="text-[11px] font-black text-blue-400 hover:text-white flex items-center gap-3 uppercase tracking-widest italic group transition-all">
-            <i className="fas fa-arrow-left group-hover:-translate-x-2 transition-transform"></i> DASHBOARD
-          </button>
-          <div className="flex flex-col">
-             <h1 className="text-5xl font-black uppercase italic tracking-tighter leading-none mb-1">QUẢN TRỊ <span className="text-blue-500">NHÀ TRƯỜNG SỐ</span></h1>
-             <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.5em] italic">LAB SỐ 4.0 - PHÂN HỆ ĐIỀU HÀNH TỔNG THỂ</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-5">
-           <button onClick={() => setShowZalo(true)} className="bg-white/5 text-white px-10 py-5 rounded-2xl text-[11px] font-black uppercase italic flex items-center gap-4 border border-white/10 hover:bg-[#0068ff] transition-all">
-              <i className="fab fa-facebook-messenger text-2xl"></i> ZALO CHAT PRO
-           </button>
-           <button onClick={() => setShowZoom(true)} className="bg-blue-600 text-white px-10 py-5 rounded-2xl text-[11px] font-black uppercase shadow-3xl italic flex items-center gap-5 border-b-8 border-blue-900 active:scale-95 transition-all">
-              <i className="fas fa-video text-2xl"></i> PHÒNG HỌP TRỰC TUYẾN
-           </button>
-        </div>
-      </div>
-
-      <div className="flex-1 flex gap-8 mt-8 mb-10 px-12 overflow-hidden">
-        {/* Left Sidebar Menu */}
-        <div className="bg-white p-6 rounded-[2.5rem] shadow-3d-extreme flex flex-col shrink-0 overflow-y-auto no-scrollbar border border-slate-200 w-[340px] animate-in slide-in-from-left-10 duration-700">
-           <div className="space-y-2">
-             {sideMenus.map(menu => (
-               <button key={menu.id} onClick={() => setActiveMenu(menu.id)} className={`w-full flex items-center gap-5 px-6 py-4 rounded-2xl transition-all group ${activeMenu === menu.id ? 'bg-[#061631] text-white shadow-xl italic font-black scale-[1.03] border-b-4 border-black/20' : 'text-slate-400 hover:text-[#061631] hover:bg-slate-50'}`}>
-                 <i className={`fas ${menu.icon} text-xl w-8 text-center`}></i>
-                 <span className="text-[10px] font-black uppercase italic tracking-widest leading-none">{menu.label}</span>
-               </button>
-             ))}
-           </div>
-        </div>
-
-        {/* Main Content Pane */}
-        <div className="flex-1 bg-white rounded-[3rem] shadow-3d-extreme border border-white flex flex-col relative overflow-hidden animate-in zoom-in-95">
-           <div className="flex justify-between items-center px-12 py-8 shrink-0 border-b border-slate-100">
-              <h2 className="text-3xl font-black text-[#061631] uppercase italic tracking-tighter leading-none">{sideMenus.find(m => m.id === activeMenu)?.label}</h2>
-              <div className="flex gap-4">
-                 <button onClick={toggleFullscreen} className="bg-slate-100 text-[#061631] px-8 py-4 rounded-xl text-[11px] font-black uppercase italic shadow-md flex items-center gap-3 hover:bg-slate-200 transition-all active:scale-95">
-                   <i className="fas fa-expand-arrows-alt text-lg"></i> TOÀN MÀN HÌNH
-                 </button>
-                 <button onClick={() => setIsExcelModalOpen(true)} className="bg-[#12b76a] text-white px-10 py-4 rounded-xl text-[11px] font-black uppercase italic shadow-xl border-b-8 border-emerald-900 active:scale-95 transition-all flex items-center gap-3 hover:bg-emerald-600">
-                   <i className="fas fa-file-excel text-lg"></i> ĐỒNG BỘ EXCEL (CHUẨN)
-                 </button>
-              </div>
-           </div>
-           <div className="flex-1 overflow-hidden relative">
-              {renderContent()}
-           </div>
-        </div>
-      </div>
-
-      {isExcelModalOpen && (
-        <div className="fixed inset-0 z-[1200] bg-[#061631]/95 backdrop-blur-xl flex items-center justify-center p-8 animate-in fade-in">
-           <div className="bg-white w-full max-w-5xl rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in-95 duration-500 border border-white/20">
-              <div className="p-12 bg-[#061631] text-white flex justify-between items-center shrink-0">
-                 <div className="flex items-center gap-6 font-black italic uppercase text-2xl tracking-tighter"><i className="fas fa-file-excel text-emerald-400 text-4xl"></i> ĐỒNG BỘ NHÂN SỰ CHUẨN XÁC</div>
-                 <button onClick={() => setIsExcelModalOpen(false)} className="w-12 h-12 hover:bg-white/10 rounded-full flex items-center justify-center transition-all"><i className="fas fa-times text-2xl"></i></button>
-              </div>
-              <div className="p-12 space-y-8">
-                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center leading-relaxed">
-                   Dán các cột từ Excel theo đúng thứ tự (Họ tên, Nữ, Biên chế, Tập sự, Hợp đồng, Công tác chính...)
-                 </p>
-                 <textarea 
-                    value={excelPasteData} 
-                    onChange={e => setExcelPasteData(e.target.value)} 
-                    rows={10} 
-                    className="w-full bg-slate-50 border-4 border-slate-200 rounded-[2rem] p-10 text-[12px] outline-none font-mono focus:border-blue-500 shadow-inner transition-all italic font-bold" 
-                    placeholder="Dán dữ liệu Excel tại đây..." 
-                 />
-                 <button onClick={() => {
-                     const rows = excelPasteData.trim().split('\n');
-                     const newList = rows.map((row, i) => {
-                       const cols = row.split('\t');
-                       return { 
-                         id: Date.now().toString() + i, 
-                         name: cols[1] || 'GV mới', 
-                         isFemale: cols[2]?.toLowerCase() === 'x', 
-                         isPermanent: cols[3]?.toLowerCase() === 'x', 
-                         isProbation: cols[4]?.toLowerCase() === 'x', 
-                         isContract: cols[5]?.toLowerCase() === 'x', 
-                         duty: cols[6] || 'Giáo viên', 
-                         subject: cols[7] || '', 
-                         classes: cols[8] || '',
-                         teachingPeriods: parseInt(cols[9]) || 0,
-                         classManager: cols[10] || '',
-                         concurrentDuty: cols[11] || '',
-                         totalPeriods: parseInt(cols[12]) || 0,
-                         standardPeriods: parseInt(cols[13]) || 17,
-                         overtime: parseInt(cols[14]) || 0,
-                         notes: cols[15] || ''
-                       };
-                     });
-                     setStaffData(newList);
-                     localStorage.setItem('vietedu_staff_list_final_v6', JSON.stringify(newList));
-                     setIsExcelModalOpen(false);
-                     setExcelPasteData('');
-                   }} className="w-full bg-blue-600 text-white font-black py-8 rounded-[1.5rem] shadow-3xl uppercase italic text-xl border-b-8 border-blue-900 active:scale-95 transition-all">HOÀN TẤT ĐỒNG BỘ</button>
-              </div>
-           </div>
-        </div>
-      )}
-
-      {showZoom && <ZoomMeeting onBack={() => setShowZoom(false)} />}
+    <div className={`flex h-screen bg-[#020617] text-white overflow-hidden ${isFullScreen ? 'p-0' : ''}`}>
       
-      {showZalo && (
-         <div className="fixed inset-0 z-[1100] bg-black/50 backdrop-blur-md flex items-center justify-center p-12">
-            <div className="w-full max-w-5xl h-[85vh] relative animate-in zoom-in-95 duration-500">
-               <button onClick={() => setShowZalo(false)} className="absolute -top-6 -right-6 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl z-50 text-rose-500 hover:scale-110 transition-all"><i className="fas fa-times text-2xl"></i></button>
-               <VietEduChat isInline={true} />
-            </div>
-         </div>
+      {/* SIDEBAR TRÁI */}
+      {!isFullScreen && (
+        <aside className="w-72 flex flex-col border-r border-white/5 bg-[#0f172a] z-50">
+          <div className="p-8 border-b border-white/5">
+            <h2 className="text-[11px] font-black text-blue-400 uppercase italic tracking-widest">{SCHOOL_NAME}</h2>
+          </div>
+          <nav className="flex-1 overflow-y-auto p-4 space-y-2 custom-scroll">
+            {sidebarMenus.map((item) => (
+              <button key={item.id} onClick={() => { setActiveSubMenu(item.id); setCurrentWorkSpace(null); }} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase italic transition-all ${activeSubMenu === item.id ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-500 hover:bg-white/5'}`}>
+                <i className={`fa-solid ${item.icon} w-5`}></i> {item.label}
+              </button>
+            ))}
+          </nav>
+          <div className="p-6"><button className="w-full py-4 bg-red-500/10 text-red-500 rounded-2xl font-black italic text-[10px] uppercase border border-red-500/20">ĐĂNG XUẤT</button></div>
+        </aside>
       )}
+
+      <main className="flex-1 flex flex-col relative bg-[#020617]">
+        <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-[#0f172a]/80 backdrop-blur-md">
+          <div className="text-[11px] font-black uppercase italic text-blue-500">
+            {isFullScreen ? 'CHẾ ĐỘ TOÀN MÀN HÌNH' : `Phân hệ: ${sidebarMenus.find(m => m.id === activeSubMenu)?.label}`}
+          </div>
+          <div className="flex gap-4">
+            <button onClick={() => setIsFullScreen(!isFullScreen)} className="bg-slate-800 text-white px-6 py-3 rounded-xl font-black italic text-[10px] uppercase border border-white/10 hover:bg-slate-700 transition-all">
+              <i className={`fa-solid ${isFullScreen ? 'fa-compress' : 'fa-expand'} mr-2`}></i> {isFullScreen ? 'Thu nhỏ' : 'Toàn màn hình'}
+            </button>
+            <button onClick={() => setIsZaloOpen(!isZaloOpen)} className="bg-[#0068ff] text-white px-6 py-3 rounded-xl font-black italic text-[10px] uppercase shadow-lg flex items-center gap-2"><i className="fa-solid fa-comment-dots"></i> Zalo OA Admin</button>
+          </div>
+        </header>
+
+        <section className="flex-1 overflow-y-auto p-10 custom-scroll">
+          
+          {/* TRANG NHÂN SỰ: BẢNG PHÂN CÔNG CHUYÊN MÔN */}
+          {activeSubMenu === 'hr' && (
+            <div className="bg-white rounded-[40px] text-black shadow-2xl flex flex-col min-h-full">
+              <div className="p-12 pb-6">
+                <div className="flex justify-between items-start mb-10">
+                  <div className="text-center">
+                    <h4 className="font-bold text-[12px] uppercase leading-tight">ỦY BAN NHÂN DÂN XÃ BÌNH MỸ</h4>
+                    <h4 className="font-black text-[13px] uppercase underline underline-offset-4">TRƯỜNG TRUNG HỌC CƠ SỞ BÌNH HÒA</h4>
+                  </div>
+                  <div className="text-center">
+                    <h4 className="font-bold text-[12px] uppercase leading-tight">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h4>
+                    <h4 className="font-bold text-[12px] underline underline-offset-4">Độc lập - Tự do - Hạnh phúc</h4>
+                  </div>
+                </div>
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl font-black uppercase tracking-tighter">BẢNG PHÂN CÔNG CHUYÊN MÔN</h1>
+                  <h2 className="text-lg font-bold italic">HỌC KỲ I, NĂM HỌC 2025 - 2026</h2>
+                </div>
+                <div className="flex justify-end gap-3 mb-4">
+                  <button className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-black italic text-[10px] uppercase flex items-center gap-2 shadow-lg"><i className="fa-solid fa-file-excel"></i> Dán từ Excel</button>
+                </div>
+              </div>
+              
+              {/* TABLE CONTAINER VỚI THANH CUỘN */}
+              <div className="flex-1 overflow-x-auto px-12 pb-12 custom-scroll-light">
+                <table className="w-full border-collapse border-2 border-slate-800 text-[11px]">
+                  <thead>
+                    <tr className="bg-slate-300 text-slate-900 font-black uppercase text-center">
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3 w-10">TT</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3 min-w-[200px]">Họ và tên giáo viên</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Nữ</th>
+                      <th colSpan={3} className="border-2 border-slate-800 p-3">Tình hình biên chế</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Công tác chính</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Môn</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3 min-w-[300px]">Lớp (Khối) dạy</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Tổng số tiết dạy</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Chủ nhiệm</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Công tác kiêm nhiệm</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Tổng số tiết/tuần</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Số tiết tiêu chuẩn</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Số tiết phụ trội</th>
+                      <th rowSpan={2} className="border-2 border-slate-800 p-3">Ghi chú</th>
+                    </tr>
+                    <tr className="bg-slate-300 text-slate-900 font-black text-[9px]">
+                      <th className="border-2 border-slate-800 p-2">Biên chế</th>
+                      <th className="border-2 border-slate-800 p-2">Tập sự</th>
+                      <th className="border-2 border-slate-800 p-2">Hợp đồng</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1,2,3,4,5].map(i => (
+                      <tr key={i} className="hover:bg-slate-50 italic font-bold">
+                        {Array(16).fill(0).map((_, j) => <td key={j} className="border-2 border-slate-800 p-3 text-center h-12"></td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TRANG BÁO CÁO TỔNG HỢP */}
+          {activeSubMenu === 'reports' && (
+            <div className="grid grid-cols-3 gap-6 animate-in slide-in-from-bottom-5">
+              <div className="col-span-3 text-[12px] font-black uppercase italic text-blue-400 mb-4 flex justify-between items-center">
+                <span>CHUYÊN GIA BÁO CÁO TỔ TRƯỞNG CHUYÊN MÔN</span>
+                <button className="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg border border-blue-500/30 text-[10px]"><i className="fa-solid fa-chevron-up mr-2"></i> THU GỌN DANH MỤC</button>
+              </div>
+              {reportData.map((sec, idx) => (
+                <div key={idx} className="bg-[#0f172a] border border-white/10 rounded-[40px] p-8 hover:border-blue-500/40 transition-all shadow-xl">
+                  <h3 className="text-blue-500 font-black italic text-[11px] uppercase mb-6 border-b border-dashed border-white/10 pb-4">{sec.title}</h3>
+                  <ul className="space-y-4">
+                    {sec.items.map((item, i) => (
+                      <li key={i} onClick={() => setCurrentWorkSpace(item)} className="flex items-start gap-3 group cursor-pointer">
+                        <i className="fa-solid fa-circle-check text-[10px] text-blue-600 mt-1 opacity-50 group-hover:opacity-100 transition-all"></i>
+                        <span className="text-[11px] font-bold italic opacity-70 group-hover:opacity-100 group-hover:text-blue-400 transition-all leading-relaxed">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TRANG HÀNH CHÍNH & CÁC TRANG CÒN LẠI (KÍCH HOẠT KHÔNG GIAN LÀM VIỆC) */}
+          {(activeSubMenu === 'office' || activeSubMenu === 'party' || activeSubMenu === 'union' || activeSubMenu === 'finance' || activeSubMenu === 'academic' || activeSubMenu === 'facilities' || activeSubMenu === 'tkb') && !currentWorkSpace && (
+            <div className="grid grid-cols-4 gap-6 animate-in zoom-in-95">
+              {activeSubMenu === 'office' ? (
+                officeDepts.map((dept, idx) => (
+                  <div key={idx} className="bg-[#0f172a] border border-white/10 rounded-[50px] p-10 text-center group transition-all hover:shadow-[0_0_50px_rgba(59,130,246,0.15)]">
+                    <div className={`${dept.color} w-16 h-16 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-all`}><i className={`fa-solid ${dept.icon} text-2xl`}></i></div>
+                    <h4 className="text-[13px] font-black uppercase italic mb-8 tracking-tighter">{dept.label}</h4>
+                    <button onClick={() => setCurrentWorkSpace(dept.label)} className="w-full py-4 bg-white/5 hover:bg-blue-600 text-white rounded-2xl font-black italic text-[10px] uppercase transition-all">Mở không gian</button>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-4 bg-[#0f172a] rounded-[60px] p-20 text-center border border-dashed border-white/10">
+                   <i className={`fa-solid ${sidebarMenus.find(m => m.id === activeSubMenu)?.icon} text-6xl text-blue-500/20 mb-10`}></i>
+                   <h2 className="text-2xl font-black uppercase italic mb-10">KHÔNG GIAN LÀM VIỆC: {sidebarMenus.find(m => m.id === activeSubMenu)?.label}</h2>
+                   <button onClick={() => setCurrentWorkSpace(sidebarMenus.find(m => m.id === activeSubMenu)?.label || '')} className="bg-blue-600 text-white px-10 py-5 rounded-3xl font-black italic uppercase text-[12px] shadow-2xl hover:scale-105 transition-all">Kích hoạt phân hệ thực tế</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* WORKSPACE CHUNG CHO TẤT CẢ */}
+          {currentWorkSpace && (
+            <div className="bg-[#0f172a] rounded-[60px] border border-white/10 p-12 h-full flex flex-col shadow-inner animate-in fade-in zoom-in-95">
+               <div className="flex justify-between items-center mb-10 pb-8 border-b border-dashed border-white/10">
+                  <h3 className="text-3xl font-black uppercase italic text-blue-500 tracking-tighter">BỘ PHẬN: {currentWorkSpace}</h3>
+                  <div className="flex gap-4">
+                    <button className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black italic text-[11px] uppercase flex items-center gap-3 shadow-xl hover:scale-105 transition-all">
+                      <i className="fa-solid fa-file-excel text-lg"></i> Dán từ Excel
+                    </button>
+                    <button onClick={() => setCurrentWorkSpace(null)} className="px-6 py-4 text-slate-500 font-black italic text-[10px] uppercase hover:text-red-500 transition-all">Đóng [x]</button>
+                  </div>
+               </div>
+               <div className="flex-1 border-4 border-dashed border-white/5 rounded-[40px] flex items-center justify-center italic font-black text-xs uppercase text-slate-500 opacity-20">Sẵn sàng nhận dữ liệu phân công & báo cáo chuyên sâu...</div>
+            </div>
+          )}
+        </section>
+
+        {/* ZALO OA WIDGET */}
+        {isZaloOpen && (
+          <div className="absolute bottom-10 right-10 w-[420px] h-[700px] bg-[#1e293b] rounded-[50px] shadow-2xl border-4 border-blue-500/20 z-[100] flex flex-col overflow-hidden animate-in slide-in-from-right-10">
+             <div className="p-8 bg-[#0068ff] text-white flex items-center justify-between shadow-lg shrink-0">
+                <div className="flex items-center gap-4">
+                   <div className="w-14 h-14 bg-white p-1 rounded-full"><img src="https://i.imgur.com/8Yv9z6V.png" className="w-full h-full" /></div>
+                   <div>
+                      <h4 className="font-black italic text-[13px] uppercase leading-none">THCS Bình Hòa</h4>
+                      <p className="text-[8px] font-black opacity-70 italic mt-1 uppercase leading-relaxed">OA ID: 2731008879488992092</p>
+                   </div>
+                </div>
+                <button onClick={() => setIsZaloOpen(false)} className="text-2xl"><i className="fa-solid fa-circle-xmark"></i></button>
+             </div>
+             <div className="flex-1 p-8 bg-[#0f172a]">
+                <div className="bg-blue-600 text-white p-5 rounded-[25px] rounded-bl-none text-[12px] font-black italic shadow-md">Đang chờ duyệt tài khoản xác thực...</div>
+             </div>
+             <div className="p-8 bg-[#1e293b] border-t border-white/5 flex gap-4">
+                <input type="text" placeholder="Nhập tin nhắn..." className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 text-[11px] italic font-black outline-none" />
+                <button className="w-14 h-14 bg-[#0068ff] text-white rounded-2xl shadow-xl flex items-center justify-center"><i className="fa-solid fa-paper-plane text-xl"></i></button>
+             </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 };
 
-export default SchoolAdmin;
+export default THCS_BinhHoa_Elite_Final_2026;

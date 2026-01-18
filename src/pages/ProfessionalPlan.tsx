@@ -1,108 +1,130 @@
+import React, { useState, useEffect } from 'react';
 
-import React, { useState, useRef } from 'react';
+const ProfessionalPlan: React.FC = () => {
+  // Trạng thái bật/tắt Modal dán Excel
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputData, setInputData] = useState('');
+  const [tableRows, setTableRows] = useState<string[][]>([]);
 
-const ProfessionalPlan: React.FC<{onBack: () => void}> = ({ onBack }) => {
-  const [activeTab, setActiveTab] = useState('school');
-  const [files, setFiles] = useState<any[]>([]);
-  const uploadRef = useRef<HTMLInputElement>(null);
-
-  const tabs = [
-    { id: 'school', label: 'KH TRƯỜNG', icon: 'fa-building-columns' },
-    { id: 'group', label: 'KH TỔ CM', icon: 'fa-people-group' },
-    { id: 'personal', label: 'KH CÁ NHÂN', icon: 'fa-user-tie' },
-    { id: 'program', label: 'PP CHƯƠNG TRÌNH', icon: 'fa-list-check' },
-    { id: 'strategy', label: 'SỔ TAY CHIẾN LƯỢC', icon: 'fa-pen-nib' },
-  ];
-
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const newFile = {
-        name: file.name,
-        date: new Date().toLocaleDateString('vi-VN'),
-        size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-        tab: activeTab
-      };
-      setFiles([newFile, ...files]);
-    }
+  // Hàm xử lý dữ liệu dán từ Excel (Chuẩn Tab-Separated)
+  const processExcelData = () => {
+    if (!inputData.trim()) return;
+    // Tách dòng và tách cột chuẩn xác tuyệt đối
+    const rows = inputData.trim().split('\n').map(line => line.split('\t'));
+    setTableRows(rows);
+    setIsOpen(false);
+    setInputData('');
   };
 
-  const filteredFiles = files.filter(f => f.tab === activeTab);
-
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-[#f0f4f9] animate-in fade-in duration-700 font-sans">
-      <input type="file" ref={uploadRef} className="hidden" onChange={handleUpload} />
+    <div className="relative min-h-screen bg-[#f8fafc] p-4 md:p-10 font-sans">
       
-      {/* Header Section */}
-      <div className="flex justify-between items-center px-12 py-8 shrink-0">
-        <div>
-          <button onClick={onBack} className="text-[11px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest italic flex items-center gap-2 mb-2 group">
-            <i className="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> QUAY LẠI DASHBOARD
+      {/* HEADER TRANG - TƯƠNG PHẢN MẠNH */}
+      <div className="max-w-6xl mx-auto bg-white rounded-[3rem] shadow-2xl p-8 border border-slate-100 mb-10">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl font-black text-slate-800 tracking-tighter uppercase italic italic">
+              Nhân sự & <span className="text-blue-600">Tổ chức</span>
+            </h1>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-1">Trường THCS Bình Hòa • 2026</p>
+          </div>
+
+          {/* NÚT DÁN EXCEL - ĐÃ ĐƯỢC KÍCH HOẠT THỰC SỰ */}
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              setIsOpen(true);
+              console.log("Nút đã được bấm!"); // Kiểm tra trong Console nếu cần
+            }}
+            className="group relative flex items-center gap-3 bg-[#107c41] hover:bg-[#1d5b38] text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_15px_30px_-5px_rgba(16,124,65,0.4)] transition-all active:scale-90 z-50"
+          >
+            <i className="fas fa-file-excel text-xl animate-bounce"></i>
+            Dán từ Excel ngay
           </button>
-          <h1 className="text-4xl font-black text-slate-900 uppercase italic tracking-tighter leading-none">
-            HỒ SƠ <span className="text-blue-600">CHUYÊN MÔN SỐ</span>
-          </h1>
-        </div>
-        <button 
-          onClick={() => uploadRef.current?.click()}
-          className="bg-[#0f172a] text-white px-10 py-5 rounded-[2rem] text-[12px] font-black uppercase shadow-2xl italic flex items-center gap-3 border-b-8 border-black transition-all hover:scale-105 active:scale-95"
-        >
-          <i className="fas fa-cloud-arrow-up text-blue-400"></i> TẢI LÊN HỒ SƠ CHUYÊN MÔN
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="px-12 mb-8 shrink-0">
-        <div className="bg-white p-2 rounded-[2.5rem] shadow-xl border border-slate-200 flex items-center justify-between">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-3 py-5 px-6 rounded-[1.8rem] transition-all duration-300 ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-xl font-black italic scale-[1.03]'
-                  : 'text-slate-400 hover:bg-slate-50 font-bold'
-              }`}
-            >
-              <i className={`fas ${tab.icon} text-sm`}></i>
-              <span className="text-[11px] font-black uppercase tracking-widest leading-none">{tab.label}</span>
-            </button>
-          ))}
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 mx-12 mb-12 bg-white rounded-[4rem] shadow-3d-extreme border border-white relative overflow-hidden flex flex-col p-12">
-         <div className="flex justify-between items-center mb-10 shrink-0">
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-[#061631]">{tabs.find(t => t.id === activeTab)?.label}</h2>
-            <span className="bg-slate-50 px-5 py-2 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest italic">TỔNG CỘNG: {filteredFiles.length} TẬP TIN</span>
-         </div>
-
-         <div className="flex-1 overflow-y-auto no-scrollbar space-y-4">
-            {filteredFiles.length > 0 ? filteredFiles.map((file, idx) => (
-               <div key={idx} className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
-                  <div className="flex items-center gap-6">
-                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm text-blue-600 border border-slate-100">
-                        <i className="fas fa-file-invoice text-2xl"></i>
-                     </div>
-                     <div>
-                        <h4 className="text-[13px] font-black text-slate-800 uppercase italic tracking-tight">{file.name}</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase italic">Ngày nạp: {file.date} | Dung lượng: {file.size}</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-4">
-                     <button className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 shadow-sm transition-all"><i className="fas fa-eye"></i></button>
-                     <button className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-600 shadow-sm transition-all"><i className="fas fa-download"></i></button>
-                  </div>
-               </div>
-            )) : (
-              <div className="h-full flex flex-col items-center justify-center opacity-10 text-center">
-                <i className="fas fa-folder-open text-[150px] mb-8"></i>
-                <h4 className="text-[14px] font-black uppercase italic tracking-[0.5em]">KHO HỒ SƠ TRỐNG</h4>
-              </div>
+      {/* BẢNG HIỂN THỊ DỮ LIỆU - CỰC GỌN VÀ SÁNG */}
+      <div className="max-w-6xl mx-auto bg-white rounded-[3rem] shadow-xl overflow-hidden border border-slate-100">
+        <table className="w-full text-left">
+          <thead className="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">STT</th>
+              <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-blue-600">Dữ liệu từ Excel</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableRows.length > 0 ? (
+              tableRows.map((row, i) => (
+                <tr key={i} className="border-b border-slate-50 hover:bg-blue-50/50 transition-all">
+                  <td className="p-5 text-xs font-black text-slate-300 italic">{i + 1}</td>
+                  {row.map((cell, j) => (
+                    <td key={j} className="p-5 text-xs font-bold text-slate-700 uppercase">{cell}</td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={2} className="p-20 text-center opacity-30">
+                  <i className="fas fa-layer-group text-6xl mb-4 block"></i>
+                  <span className="text-sm font-black uppercase tracking-widest">Đang chờ dán dữ liệu...</span>
+                </td>
+              </tr>
             )}
-         </div>
+          </tbody>
+        </table>
       </div>
+
+      {/* HỘP THOẠI MODAL - CẤP ĐỘ ƯU TIÊN CAO NHẤT (Z-INDEX 9999) */}
+      {isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-[9999]">
+          {/* Lớp nền mờ */}
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+            onClick={() => setIsOpen(false)}
+          ></div>
+          
+          {/* Nội dung hộp thoại */}
+          <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] p-8 border-t-8 border-emerald-500 animate-in zoom-in duration-150">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                  <i className="fas fa-clipboard-list"></i>
+                </div>
+                <h3 className="text-xl font-black text-slate-800 italic uppercase">Nhập liệu nhanh</h3>
+              </div>
+              <button onClick={() => setIsOpen(false)} className="text-slate-300 hover:text-rose-500 transition-colors">
+                <i className="fas fa-times-circle text-2xl"></i>
+              </button>
+            </div>
+
+            <p className="text-slate-400 text-[10px] font-bold mb-4 uppercase italic">* Copy từ Excel và dán vào ô dưới đây</p>
+
+            <textarea
+              autoFocus
+              className="w-full h-48 p-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl text-xs font-semibold text-slate-700 focus:border-emerald-500 outline-none transition-all"
+              placeholder="Ctrl + V tại đây..."
+              value={inputData}
+              onChange={(e) => setInputData(e.target.value)}
+            ></textarea>
+
+            <div className="mt-6 flex gap-3">
+              <button 
+                onClick={processExcelData}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-200 transition-all active:scale-95"
+              >
+                Xác nhận dán
+              </button>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="px-6 py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-xs uppercase hover:bg-slate-200 transition-all"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

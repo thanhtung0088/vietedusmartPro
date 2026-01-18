@@ -1,6 +1,5 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  /* Ví dụ: thêm màu tùy chỉnh */
-  --color-primary: #ff6b00;
-}
+/* Giữ nguyên các custom style từ <style> cũ của bạn ở đây nếu muốn */
